@@ -33,7 +33,7 @@ class NaukriProfileUpdater:
     def setup_driver(self):
         """Set up Chrome driver with necessary options"""
         options = uc.ChromeOptions()
-        options.add_argument("--headless=new")
+        # options.add_argument("--headless=new")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
@@ -170,8 +170,11 @@ class NaukriProfileUpdater:
             time.sleep(3)
             logging.info("Looking for save button")
             
-            # Find save button
-            save_button = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+            # Find save button using the exact class and type
+            save_button = self.wait.until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'button.btn-dark-ot[type="submit"]'))
+            )
+            
             if not save_button:
                 logging.error("Save button not found")
                 return False
@@ -180,7 +183,14 @@ class NaukriProfileUpdater:
             logging.info("Clicking save button")
             self.driver.execute_script("arguments[0].scrollIntoView(true);", save_button)
             time.sleep(1)
-            self.driver.execute_script("arguments[0].click();", save_button)
+            self.driver.execute_script("""
+                arguments[0].dispatchEvent(new MouseEvent('mouseover', {
+                    'view': window,
+                    'bubbles': true,
+                    'cancelable': true
+                }));
+                arguments[0].click();
+            """, save_button)
 
             # Wait for the save to complete
             time.sleep(3)
